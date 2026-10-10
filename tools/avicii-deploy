@@ -8,6 +8,7 @@
 #   avicii-deploy --no-build - use packages already built (after a failed flash)
 
 set -e
+START=$(date +%s)
 KERNEL=linux-oneplus-avicii
 DEVICE=device-oneplus-avicii
 EXPORT=/tmp/postmarketOS-export
@@ -44,6 +45,16 @@ done
 step "Updating packages in the local rootfs chroot"
 warn "otherwise export builds the image with the old kernel"
 pmbootstrap chroot -r -- apk add -u $PKGS
+# apk add -u keeps a package of the same version, but build --force rebuilds
+# the kernel with the same pkgrel and a new module signing key. apk fix -r does
+# not help either: it takes the old package from the cache. Install the file,
+# like sideload does, or the image gets the old kernel while the phone gets
+# new modules that fail to load
+REPO="$(pmbootstrap config work)/packages/edge/aarch64"
+for p in $PKGS; do
+	f=$(cd "$REPO" && ls -t "$p"-[0-9]*.apk | head -1)
+	pmbootstrap chroot -r -- apk add "/mnt/pmbootstrap/packages/edge/aarch64/$f"
+done
 
 if ping -c1 -W2 "$PHONE" >/dev/null 2>&1; then
 	step "Phone is reachable - updating packages on it (kernel modules)"
@@ -57,7 +68,9 @@ step "Building the boot image"
 pmbootstrap export
 
 step "Checking the image before flashing"
-python3 - "$EXPORT/boot.img" <<'PY' || die "image check failed"
+KBUILT=no
+case " ${PKGS_BUILD-$PKGS} " in *" $KERNEL "*) KBUILT=yes ;; esac
+python3 - "$EXPORT/boot.img" "$START" "$KBUILT" <<'PY' || die "image check failed"
 import struct, re, sys, time, os
 p = sys.argv[1]
 d = open(p, "rb").read()
@@ -79,6 +92,14 @@ for name, token, want in (("console", "console=tty0", True),
     print(f"    {name:8} {'ok' if ok else 'WRONG'}")
     if not ok: sys.exit(1)
 if len(d) > 96*1024*1024: sys.exit(1)
+if sys.argv[3] == "yes":
+    t = re.search(r"(\w{3} \w{3} +\d+ \d\d:\d\d:\d\d) UTC (20\d\d)", built)
+    if not t: sys.exit(1)
+    import calendar
+    kt = calendar.timegm(time.strptime(t.group(1) + " " + t.group(2), "%a %b %d %H:%M:%S %Y"))
+    if kt < int(sys.argv[2]) - 60:
+        print("    ERROR: the kernel in the image was built before this run - the modules on the phone are from another build")
+        sys.exit(1)
 if age > 30: print("    WARNING: the image is older than 30 min - the rebuild may not have reached it")
 PY
 
