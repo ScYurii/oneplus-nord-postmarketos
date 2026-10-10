@@ -40,7 +40,7 @@ On Android, the closed `cnss-daemon` talks to the WLAN firmware over QMI (servic
 The kernel driver (`icnss`, version 1) does **not** do this part itself. Without it, the
 firmware never reports `FW_READY` and the driver cannot start.
 
-`wlfwd` is a small C program (about 700 lines, `wlfwd.c` in the aport) that does the same job:
+`wlfwd` is a small C program (about 700 lines, own repository: [ScYurii/wlfwd](https://github.com/ScYurii/wlfwd), built by the aport from a release tag) that does the same job:
 
 1. Registers for indications, waits for `FW_MEM_READY`.
 2. Sends `regdb.bin` (regulatory database).

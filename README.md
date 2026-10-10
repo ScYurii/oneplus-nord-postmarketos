@@ -50,7 +50,7 @@ Packages in the `oneplus-avicii` branch (`device/downstream/`):
 |---|---|
 | `linux-oneplus-avicii` | Kernel + patches (idle kthreads not counted in load average, OPLUS `midas` crash in PID namespaces, `waitid(P_PIDFD)` backport), `schedutil` by default |
 | `device-oneplus-avicii` | Device config: boot image, cmdline, A/B slot marking, first-boot firmware copy, console font, zram |
-| `avicii-wlan` | Wi-Fi bring-up: QRTR name service, `rmtfs`, `tqftpserv`, `pd-mapper` (patched), `wlfwd` |
+| `avicii-wlan` | Wi-Fi bring-up: QRTR name service, `rmtfs`, `tqftpserv`, `pd-mapper` (patched), [`wlfwd`](https://github.com/ScYurii/wlfwd) |
 | `avicii-server` | Charge limiter, `avicii-power`, monitoring dashboard, Docker fixes for 4.19, bash |
 | `temp/logbookd` | Fork of Alpine's `logbookd` with a fix for a stack overflow on long kernel messages |
 
