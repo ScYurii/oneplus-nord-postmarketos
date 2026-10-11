@@ -9,6 +9,7 @@ Only a few things must be done by hand.
 ## Before you start
 
 - **Back up EFS and `persist`** if you have not done it yet. See [Firmware](firmware.md#back-up-efs-and-persist-first).
+- Prepare the PC as described in [Preparing the PC](setup-pc.md).
 - Build and flash as described in [Building and flashing](building.md):
   rootfs to `userdata`, `boot.img` to **both** slots, `vbmeta` with verification disabled.
 - **`boot.img` and rootfs are a pair.** The filesystem UUIDs are created by
@@ -18,8 +19,9 @@ Only a few things must be done by hand.
 
 ## What is packaged
 
-All of this comes with `device-oneplus-avicii` and its dependencies. You do not need to
-set it up by hand.
+All of this comes with `device-oneplus-avicii` and its dependencies, except `avicii-server`:
+it must be in `extra_packages` of the pmbootstrap config (see
+[Preparing the PC](setup-pc.md#6-pmbootstrap-init)). You do not need to set the rest up by hand.
 
 | Package | What it brings |
 |---|---|

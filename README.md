@@ -42,7 +42,10 @@ userspace, and most of the work in this port is replacing what Android normally 
 | Repository | Contents |
 |---|---|
 | **this repo** | Documentation, deploy script, notes on every problem solved |
+| [ScYurii/wlfwd](https://github.com/ScYurii/wlfwd) | The Wi-Fi firmware helper, packaged by `avicii-wlan` |
 | [ScYurii/pmaports, branch `oneplus-avicii`](https://github.com/ScYurii/pmaports/tree/oneplus-avicii) | The actual packages (aports), rebased on upstream `main` |
+
+More detail — branches, files on the PC and on the phone: [Where things are](docs/layout.md).
 
 Packages in the `oneplus-avicii` branch (`device/downstream/`):
 
@@ -58,25 +61,27 @@ Packages in the `oneplus-avicii` branch (`device/downstream/`):
 
 > TODO: verify end to end on a clean install.
 
-**You need:** unlocked bootloader, a Linux PC, `fastboot`, [pmbootstrap](https://docs.postmarketos.org/pmbootstrap/) 3.x.
+**You need:** unlocked bootloader, a Linux PC. The steps, each with its own page:
 
-1. **Get the packages.** Point pmbootstrap's pmaports checkout to this port:
-   ```sh
-   cd "$(pmbootstrap config aports)"
-   git remote add avicii https://github.com/ScYurii/pmaports.git
-   git fetch avicii && git checkout oneplus-avicii
-   ```
-2. **Configure:** `pmbootstrap init` → vendor `oneplus`, device `avicii`, UI `console`.
-3. **Build and install the rootfs:** `pmbootstrap install`
-4. **Disable verified boot** (once). Without this the bootloader silently refuses the image:
-   ```sh
-   pmbootstrap chroot -- apk add android-tools-avbtool
-   avbtool make_vbmeta_image --flags 2 --padding_size 4096 --output vbmeta.img
-   fastboot flash vbmeta_a vbmeta.img && fastboot flash vbmeta_b vbmeta.img
-   ```
-5. **Flash** the rootfs to `userdata` and the boot image to **both** slots — see [Building and flashing](docs/building.md).
-6. **First boot:** connect over USB (`ssh user@172.16.42.1`), let firmware be copied, reboot once,
-   then join Wi-Fi with `nmcli` — see [Reinstall from scratch](docs/reinstall.md).
+1. **Back up EFS and `persist`** — the per-unit calibration has no other copy.
+   → [Firmware](docs/firmware.md#back-up-efs-and-persist-first)
+2. **Prepare the PC:** packages, pmbootstrap 3.x, the pmaports fork (branch `oneplus-avicii`),
+   `pmbootstrap init` with `avicii-server` in `extra_packages`, `fastboot` without sudo.
+   → [Preparing the PC](docs/setup-pc.md)
+3. **Build and install:** `pmbootstrap install`, then `pmbootstrap export`.
+   → [Building and flashing](docs/building.md)
+4. **Disable verified boot** once (empty `vbmeta` in both slots), otherwise the bootloader
+   silently refuses the image. → [Building](docs/building.md#4-disable-verified-boot-once)
+5. **Flash** the rootfs to `userdata` and the boot image to **both** slots.
+   → [Building](docs/building.md#5-flash)
+6. **First boot:** `ssh user@172.16.42.1` over USB, let firmware be copied, reboot once,
+   join Wi-Fi with `nmcli`. → [Reinstall from scratch](docs/reinstall.md#first-boot)
+
+Where each file lives — on the PC, in pmaports and on the phone: [Where things are](docs/layout.md).
+
+> **RU:** Порядок: бэкап EFS и persist → подготовка ноута → сборка → выключение verified boot
+> (один раз) → прошивка rootfs и `boot.img` в оба слота → первая загрузка. Что где лежит —
+> в [layout.md](docs/layout.md).
 
 For day-to-day kernel/device updates there is [`tools/avicii-deploy`](tools/): build, check the image,
 flash both slots and report the state after boot in one command.

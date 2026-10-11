@@ -6,8 +6,9 @@ For the checks after the first boot, see [Reinstall from scratch](reinstall.md).
 
 ## Before you start
 
-- Unlocked bootloader, a Linux PC with `fastboot`.
-- [pmbootstrap](https://docs.postmarketos.org/pmbootstrap/) 3.x (the port was built with 3.11).
+- Unlocked bootloader.
+- A prepared PC: packages, pmbootstrap 3.x, the pmaports fork, `pmbootstrap init`,
+  `fastboot` without `sudo` — all in [Preparing the PC](setup-pc.md).
 - **pmbootstrap needs `sudo` with a real terminal (TTY).** It mounts images and
   uses loop devices. Run it in your own terminal, not from a script without a TTY.
   If the `sudo` timeout runs out during a long kernel build, the next step can fail
@@ -20,15 +21,16 @@ To enter fastboot mode: power the phone off, then hold **Power + Volume Up**.
 
 The packages live in the `oneplus-avicii` branch of
 [ScYurii/pmaports](https://github.com/ScYurii/pmaports/tree/oneplus-avicii)
-(`device/downstream/`). Point pmbootstrap's pmaports checkout to it:
+(`device/downstream/`). How to set up the checkout and `pmbootstrap init`
+(including `avicii-server` in `extra_packages`): [Preparing the PC](setup-pc.md#5-pmaports-with-this-port).
+
+Before a build, check that pmaports is on the right branch:
 
 ```sh
-cd "$(pmbootstrap config aports)"
-git remote add avicii https://github.com/ScYurii/pmaports.git
-git fetch avicii && git checkout oneplus-avicii
+# should print oneplus-avicii
+# должно быть oneplus-avicii
+git -C "$(pmbootstrap config aports)" branch --show-current
 ```
-
-Then run `pmbootstrap init` and choose vendor `oneplus`, device `avicii`, UI `console`.
 
 ## 2. Build
 
@@ -41,7 +43,8 @@ pmbootstrap build --arch aarch64 device-oneplus-avicii
 ```
 
 You do not have to build the other packages by hand: `pmbootstrap install`
-builds missing dependencies (`avicii-wlan`, `avicii-server`, `temp/logbookd`).
+builds missing dependencies (`avicii-wlan`, `temp/logbookd`) and the packages from
+`extra_packages` (`avicii-server`).
 
 ## 3. Install and export
 
@@ -64,19 +67,31 @@ Without this step the bootloader silently refuses the flashed image and goes to
 recovery. `fastboot boot` does not check the signature, so a test boot works,
 and this hides the problem.
 
+`avbtool` is installed in pmbootstrap's native chroot, not on the PC, so the image is
+made there and then copied out:
+
 ```sh
+# install avbtool in the native chroot and make an empty vbmeta with verification off
+# поставить avbtool в native chroot и сделать пустой vbmeta с выключенной проверкой
 pmbootstrap chroot -- apk add android-tools-avbtool
-avbtool make_vbmeta_image --flags 2 --padding_size 4096 --output vbmeta.img
-fastboot flash vbmeta_a vbmeta.img
-fastboot flash vbmeta_b vbmeta.img
+pmbootstrap chroot -- avbtool make_vbmeta_image --flags 2 --padding_size 4096 --output /vbmeta.img
+
+# the chroot root is a directory in the work dir; copy the image out of it
+# корень chroot — каталог в рабочем каталоге; копируем образ оттуда
+cp "$(pmbootstrap config work)/chroot_native/vbmeta.img" /tmp/vbmeta.img
+
+# flash both slots (phone in fastboot mode)
+# прошить оба слота (телефон в режиме fastboot)
+fastboot flash vbmeta_a /tmp/vbmeta.img
+fastboot flash vbmeta_b /tmp/vbmeta.img
 ```
 
 More details: [A/B slots and verified boot](ab-slots.md).
 
 ## 5. Flash
 
-The rootfs goes to `userdata` (deviceinfo sets `flash_fastboot_partition_rootfs="userdata"`
-and a sparse image). The boot image goes to **both** slots.
+The rootfs goes to `userdata` (pmbootstrap's default for fastboot devices; deviceinfo
+asks for a sparse image). The boot image goes to **both** slots.
 
 ```sh
 pmbootstrap flasher flash_rootfs

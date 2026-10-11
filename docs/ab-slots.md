@@ -84,9 +84,10 @@ written to both `vbmeta` slots. You need to do this only once, unless something
 
 ```sh
 pmbootstrap chroot -- apk add android-tools-avbtool
-avbtool make_vbmeta_image --flags 2 --padding_size 4096 --output vbmeta.img
-fastboot flash vbmeta_a vbmeta.img
-fastboot flash vbmeta_b vbmeta.img
+pmbootstrap chroot -- avbtool make_vbmeta_image --flags 2 --padding_size 4096 --output /vbmeta.img
+cp "$(pmbootstrap config work)/chroot_native/vbmeta.img" /tmp/vbmeta.img
+fastboot flash vbmeta_a /tmp/vbmeta.img
+fastboot flash vbmeta_b /tmp/vbmeta.img
 ```
 
 ## Summary
