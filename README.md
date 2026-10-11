@@ -25,7 +25,7 @@ on a phone that was never supported by mainline Linux.
 | Modem / calls / SMS / mobile data | ❌ | Modem firmware runs (Wi-Fi lives inside it), telephony not set up |
 | Audio | ❌ | ADSP is up, audio stack not configured |
 | Camera, GPU, Bluetooth | ❌ / untested | |
-| Firewall (nftables) | ❌ | `nf_tables` in 4.19 is too old for current userspace; `iptables-legacy` works (Docker uses it) |
+| Firewall | ✅ | `iptables-legacy` (`nftables` does not work on 4.19): from the LAN only SSH and the dashboards, see [Known issues](docs/known-issues.md#firewall-nftables-does-not-work) |
 
 ## Hardware and software
 

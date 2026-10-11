@@ -78,6 +78,7 @@ what a path is for. Paths on the PC are the defaults from [Preparing the PC](set
 | | `*-fw-dir.patch`, `*-jsn-dir.patch` | Firmware paths for this device |
 | | `*.initd`, `avicii-wlan.sh` | The Wi-Fi services and the bring-up script, see [Wi-Fi](wifi.md) |
 | `avicii-server` | `avicii-chglimit.*` | Battery charge limit, see [Battery](battery.md) |
+| | `avicii-firewall.*` | Inbound firewall on iptables-legacy, see [Known issues](known-issues.md#firewall-nftables-does-not-work) |
 | | `avicii-power.sh` | Live power draw in the terminal |
 | | `avicii-monitor*` | Dashboard on port 8080, see [Dashboard](dashboard.md) |
 | | `avicii-docker-*` | Docker settings for the 4.19 kernel, see [Docker](docker.md) |

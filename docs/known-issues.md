@@ -15,9 +15,21 @@ open, fixed, or accepted (we know about it and keep it).
   `netlink: Error: cache initialization failed: Invalid argument`.
   No rules are loaded, so **all ports (SSH, dashboard 8080, ...) are open on the LAN**.
 - **Cause:** `nf_tables` in 4.19 is too old for the current `nft` userspace.
-- **Status:** accepted. The phone is on a home network, and the owner decided a firewall is
-  not needed there. The old `iptables-legacy` works (Docker uses it, see [Docker](docker.md)),
-  so rules could be written with it later. **Do not expose the phone to the internet as it is.**
+- **Status:** worked around with the old `iptables-legacy` (Docker uses it too, see [Docker](docker.md)).
+  The `avicii-firewall` service from `avicii-server` applies the rules at boot:
+
+  | From | Allowed |
+  |---|---|
+  | USB (`usb0`) | everything — the way back in if a rule goes wrong |
+  | LAN (`192.168.1.0/24`) | TCP 22 (SSH), 8080 (power dashboard), 8081 (portfolio dashboard), ICMP |
+  | IPv6 | the same ports, only from link-local addresses (no global IPv6 on Wi-Fi) |
+  | anything else | dropped |
+
+  Ports published by Docker never reach the `INPUT` chain: they are DNAT-ed and go through
+  `FORWARD`. Their limit lives in the `DOCKER-USER` chain (new connections from Wi-Fi only from
+  the LAN). Rules are added in one go: if the kernel rejects one, the script stops before the
+  final `DROP`. Settings: `/etc/conf.d/avicii-firewall`. To switch off:
+  `sudo rc-service avicii-firewall stop`.
 
 ### systemd-sysusers fails at boot
 

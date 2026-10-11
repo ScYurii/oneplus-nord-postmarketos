@@ -105,6 +105,7 @@ The packages do almost everything. Check these points:
   ```
 
   See [Docker](docker.md).
-- **No firewall.** `nftables` does not work on 4.19, so all ports (SSH, 8080) are open
-  to the local network.
+- **Firewall.** `avicii-firewall` (from `avicii-server`) leaves only SSH and the dashboards
+  open to the home network; USB stays fully open. Check: `sudo iptables-legacy -S AVICII-IN`.
+  If your home network is not `192.168.1.0/24`, set `LAN` in `/etc/conf.d/avicii-firewall`.
 
